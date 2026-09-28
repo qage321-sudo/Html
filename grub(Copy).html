@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Absensi 8A — Portal Presensi v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#0a0f14;--bg-2:#0f1a22;--card:#111a22;--card-2:#0d151c;
+    --stroke:#1c2a35;--stroke-2:#243544;--text:#e8f0f5;--muted:#7a8d9c;
+    --accent:#25d366;--accent-2:#128c7e;--danger:#ef4444;--warn:#f59e0b;
+    --blue:#3b82f6;--purple:#a855f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(37,211,102,.08), transparent 60%),
+      linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px 16px;-webkit-font-smoothing:antialiased;
+  }
+  .stage{width:100%;max-width:560px;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px;justify-content:center;color:var(--muted);font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+  .card{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--stroke);border-radius:22px;padding:28px 24px;box-shadow:0 30px 60px -20px rgba(0,0,0,.6),0 0 40px rgba(37,211,102,.1);}
+  h1{font-size:24px;font-weight:800;margin-bottom:6px;background:linear-gradient(90deg,#fff,#8ff0b8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .sub{color:var(--muted);font-size:13.5px;line-height:1.6;margin-bottom:22px;}
+  .step{display:none;}.step.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(37,211,102,.10);border:1px solid rgba(37,211,102,.25);color:#8ff0b8;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:14px;}
+  .badge svg{width:12px;height:12px;}
+  .badge.admin{background:rgba(168,85,247,.10);border-color:rgba(168,85,247,.3);color:#e9d5ff;}
+  .badge.info{background:rgba(59,130,246,.10);border-color:rgba(59,130,246,.3);color:#bfdbfe;}
+  .field{margin-bottom:14px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:7px;}
+  input,select,textarea{width:100%;background:var(--bg-1);border:1px solid var(--stroke-2);color:var(--text);padding:12px 14px;border-radius:12px;font-family:inherit;font-size:14px;outline:none;transition:border .2s,box-shadow .2s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,211,102,.12);}
+  textarea{resize:vertical;min-height:70px;}
+  select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8d9c' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .btn{width:100%;padding:13px 16px;border-radius:12px;border:none;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;transition:transform .15s,opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#04140c;box-shadow:0 10px 30px -10px rgba(37,211,102,.6);}
+  .btn-primary:hover{opacity:.92;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-ghost{background:transparent;border:1px solid var(--stroke-2);color:var(--text);}
+  .btn-ghost:hover{border-color:var(--accent);color:#8ff0b8;}
+  .swap{text-align:center;margin-top:16px;font-size:13px;color:var(--muted);}
+  .swap a{color:#8ff0b8;text-decoration:none;font-weight:600;cursor:pointer;}
+  .pass-wrap{position:relative;}
+  .pass-wrap input{padding-right:44px;}
+  .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;color:var(--muted);padding:8px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:color .2s;}
+  .eye:hover{color:var(--accent);}
+  .eye svg{width:18px;height:18px;}
+  .captcha-box{background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:12px;padding:16px;text-align:center;}
+  .captcha-q{font-size:22px;font-weight:800;letter-spacing:.06em;background:linear-gradient(90deg,#fff,#8ff0b8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;font-family:'Courier New',monospace;user-select:none;}
+  .captcha-refresh{background:transparent;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px;}
+  .captcha-refresh:hover{color:#8ff0b8;}
+  .captcha-verify{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:12px;cursor:pointer;user-select:none;transition:border .2s;}
+  .captcha-verify:hover{border-color:var(--accent);}
+  .captcha-verify .check{width:22px;height:22px;border-radius:6px;border:2px solid var(--stroke-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+  .captcha-verify.checked .check{background:var(--accent);border-color:var(--accent);}
+  .captcha-verify .check svg{width:14px;height:14px;color:#04140c;opacity:0;transition:opacity .2s;}
+  .captcha-verify.checked .check svg{opacity:1;}
+  .captcha-verify .label{font-size:13.5px;font-weight:600;}
+  .err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#ffb4b4;font-size:12.5px;padding:10px 12px;border-radius:10px;margin-top:12px;display:none;}
+  .err.show{display:block;}
+  .meter{height:4px;background:var(--stroke-2);border-radius:99px;margin-top:6px;overflow:hidden;}
+  .meter > i{display:block;height:100%;width:0;transition:width .3s,background .3s;background:var(--danger);}
+  .user-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:14px;margin-bottom:16px;}
+  .user-chip .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#04140c;font-weight:800;font-size:14px;flex-shrink:0;}
+  .user-chip .meta{flex:1;min-width:0;}
+  .user-chip .name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-chip .mail{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--bg-1);padding:5px;border-radius:14px;border:1px solid var(--stroke-2);}
+  .tab{flex:1;padding:10px 8px;border-radius:10px;background:transparent;border:none;color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .tab:hover{color:var(--text);}
+  .tab.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#04140c;}
+  .tab svg{width:14px;height:14px;}
+  .info-card{background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .info-card h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;}
+  .big-num{font-size:42px;font-weight:800;line-height:1;background:linear-gradient(90deg,#fff,#8ff0b8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+  .big-num.warn{background:linear-gradient(90deg,#fff,#fcd34d);-webkit-background-clip:text;background-clip:text;}
+  .big-num.danger{background:linear-gradient(90deg,#fff,#fca5a5);-webkit-background-clip:text;background-clip:text;}
+  .big-num-label{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .bar-track{height:12px;background:var(--bg-2);border-radius:99px;overflow:hidden;border:1px solid var(--stroke-2);position:relative;}
+  .bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--accent),#8ff0b8);}
+  .bar-fill.warn{background:linear-gradient(90deg,var(--warn),#fcd34d);}
+  .bar-fill.danger{background:linear-gradient(90deg,var(--danger),#fca5a5);}
+  .bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;font-weight:600;}
+  .status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;}
+  .status-pill.good{background:rgba(37,211,102,.15);color:#8ff0b8;border:1px solid rgba(37,211,102,.3);}
+  .status-pill.warn{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.3);}
+  .status-pill.danger{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3);}
+  .student-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:border .2s,transform .15s;}
+  .student-item:hover{border-color:var(--accent);transform:translateX(2px);}
+  .student-item .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0;}
+  .student-item .info{flex:1;min-width:0;}
+  .student-item .info .name{font-size:13.5px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .student-item .info .sub{font-size:11px;color:var(--muted);}
+  .student-item .count{font-size:18px;font-weight:800;color:var(--accent);}
+  .student-item .count.warn{color:var(--warn);}
+  .student-item .count.danger{color:var(--danger);}
+  .empty{text-align:center;padding:24px 12px;color:var(--muted);font-size:13px;line-height:1.6;}
+  .empty svg{width:42px;height:42px;opacity:.4;margin-bottom:10px;}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000;animation:fade .2s ease;}
+  .modal.show{display:flex;}
+  .modal-box{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--stroke);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.8);max-height:90vh;overflow-y:auto;}
+  .modal-box h2{font-size:18px;font-weight:800;margin-bottom:4px;background:linear-gradient(90deg,#fff,#8ff0b8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .modal-box .modal-sub{font-size:12px;color:var(--muted);margin-bottom:18px;word-break:break-all;}
+  .modal-close{background:transparent;border:none;color:var(--muted);font-size:24px;cursor:pointer;position:absolute;top:16px;right:20px;line-height:1;padding:4px 10px;}
+  .modal-close:hover{color:var(--danger);}
+  .modal-box{position:relative;}
+  .action-btn{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:12px;margin-bottom:8px;text-decoration:none;color:var(--text);font-size:13.5px;font-weight:600;transition:border .2s,background .2s;}
+  .action-btn:hover{border-color:var(--accent);background:rgba(37,211,102,.05);}
+  .action-btn svg{width:18px;height:18px;color:var(--accent);flex-shrink:0;}
+  .admin-locked{text-align:center;padding:32px 16px;}
+  .admin-locked svg{width:52px;height:52px;color:var(--danger);opacity:.7;margin-bottom:12px;}
+  .admin-locked h3{font-size:16px;font-weight:800;margin-bottom:6px;}
+  .admin-locked p{font-size:12.5px;color:var(--muted);line-height:1.6;}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .stat-box{background:var(--bg-1);border:1px solid var(--stroke-2);border-radius:12px;padding:14px;}
+  .stat-box .n{font-size:26px;font-weight:800;line-height:1;margin-bottom:4px;}
+  .stat-box .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+  .stat-box .n.good{color:var(--accent);}
+  .stat-box .n.warn{color:var(--warn);}
+  .stat-box .n.danger{color:var(--danger);}
+  .footer{text-align:center;color:var(--muted);font-size:11px;margin-top:16px;line-height:1.6;}
+  @media (max-width:420px){.card{padding:22px 18px;border-radius:18px;}h1{font-size:20px;}.grid-2{grid-template-columns:1fr;}.tab{font-size:11.5px;padding:9px 6px;}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="brand"><span class="dot"></span><span>Absensi 8A · Portal v3</span></div>
+
+  <div class="card">
+
+    <!-- LOGIN -->
+    <div class="step active" id="step-login">
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Masuk</div>
+      <h1>Selamat Datang</h1>
+      <p class="sub">Masuk untuk mengisi absensi kelas 8A.</p>
+      <form id="form-login">
+        <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="nama@email.com" required></div>
+        <div class="field"><label>Sandi</label>
+          <div class="pass-wrap">
+            <input type="password" id="login-pass" placeholder="••••••" required>
+            <button type="button" class="eye" data-target="login-pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Masuk</button>
+      </form>
+      <div class="err" id="err-login"></div>
+      <div class="swap">Belum punya akun? <a id="go-register">Daftar sekarang</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="step" id="step-register">
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Daftar</div>
+      <h1>Buat Akun</h1>
+      <p class="sub">Daftar sekali, pakai selamanya.</p>
+      <form id="form-register">
+        <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="nama@email.com" required></div>
+        <div class="field"><label>Nomor WhatsApp</label><input type="tel" id="reg-wa" placeholder="08xxxxxxxxxx" inputmode="tel" required></div>
+        <div class="field"><label>Sandi</label>
+          <div class="pass-wrap">
+            <input type="password" id="reg-pass" placeholder="Minimal 5 karakter" required>
+            <button type="button" class="eye" data-target="reg-pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <div class="meter"><i id="pass-meter"></i></div>
+        </div>
+        <div class="field"><label>Konfirmasi Sandi</label>
+          <div class="pass-wrap">
+            <input type="password" id="reg-pass2" placeholder="Ulangi sandi" required>
+            <button type="button" class="eye" data-target="reg-pass2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Daftar & Verifikasi</button>
+      </form>
+      <div class="err" id="err-register"></div>
+      <div class="swap">Sudah punya akun? <a id="go-login">Masuk</a></div>
+    </div>
+
+    <!-- CAPTCHA -->
+    <div class="step" id="step-captcha">
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Verifikasi</div>
+      <h1>Bukan Robot?</h1>
+      <p class="sub">Selesaikan soal di bawah.</p>
+      <div class="user-chip">
+        <div class="avatar" id="cap-avatar">?</div>
+        <div class="meta"><div class="name" id="cap-name">—</div><div class="mail" id="cap-mail">—</div></div>
+      </div>
+      <div class="field"><label>Soal</label>
+        <div class="captcha-box">
+          <div class="captcha-q" id="captcha-q">— + — = ?</div>
+          <button type="button" class="captcha-refresh" id="captcha-refresh">↻ Ganti soal</button>
+        </div>
+      </div>
+      <div class="field"><label>Jawaban</label><input type="text" id="captcha-answer" inputmode="numeric" placeholder="Tulis hasil" autocomplete="off"></div>
+      <div class="field"><label>Centang jika kamu manusia</label>
+        <div class="captcha-verify" id="captcha-check">
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="label">Saya bukan robot</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-captcha">Verifikasi & Lanjut</button>
+      <div class="err" id="err-captcha"></div>
+      <button class="btn btn-ghost" style="margin-top:10px;" id="btn-back-reg2">Kembali</button>
+    </div>
+
+    <!-- MAIN APP (setelah login) -->
+    <div class="step" id="step-app">
+      <div class="user-chip">
+        <div class="avatar" id="u-avatar">?</div>
+        <div class="meta">
+          <div class="name" id="u-name">—</div>
+          <div class="mail" id="u-mail">—</div>
+        </div>
+        <button id="btn-logout" class="btn-ghost" style="width:auto;padding:6px 10px;font-size:11px;">Keluar</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="absen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Absen
+        </button>
+        <button class="tab" data-tab="info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Info
+        </button>
+        <button class="tab" data-tab="admin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3 6 6 1-4.5 4.5L17 20l-5-3-5 3 1.5-6.5L4 9l6-1z"/></svg>
+          Admin
+        </button>
+      </div>
+
+      <!-- TAB ABSEN -->
+      <div class="tab-panel" id="panel-absen">
+        <h1>Isi Absensi</h1>
+        <p class="sub">Data akan dicopy otomatis & kamu diarahkan ke grup WhatsApp.</p>
+        <form id="absen-form" autocomplete="off">
+          <div class="grid-2">
+            <div class="field"><label>Hari / Tanggal</label><input type="date" id="f-tanggal" required></div>
+            <div class="field"><label>No. Absen</label><input type="number" id="f-no" min="1" max="50" placeholder="12" required></div>
+          </div>
+          <div class="field"><label>Nama Lengkap</label><input type="text" id="f-nama" placeholder="Nama sesuai absen kelas" required></div>
+          <div class="field"><label>Status</label>
+            <select id="f-status" required>
+              <option value="">— Pilih status —</option>
+              <option value="Masuk">Masuk</option>
+              <option value="Izin">Izin</option>
+              <option value="Sakit">Sakit</option>
+            </select>
+          </div>
+          <div class="field" id="field-ket" style="display:none;">
+            <label>Keterangan / Alasan</label>
+            <textarea id="f-ket" placeholder="Contoh: Demam / Ada keperluan keluarga"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="btn-submit">
+            Konfirmasi & Kirim
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+        <div class="err" id="err-form"></div>
+      </div>
+
+      <!-- TAB INFO -->
+      <div class="tab-panel" id="panel-info" style="display:none;">
+        <div class="badge info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Statistik Absensi</div>
+        <h1>Info Kamu</h1>
+        <p class="sub">Ringkasan kehadiran & tingkat kedisiplinanmu.</p>
+
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="n good" id="info-total">0</div>
+            <div class="l">Total Absen</div>
+          </div>
+          <div class="stat-box">
+            <div class="n" id="info-bulan">0</div>
+            <div class="l">Bulan Ini</div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>Skor Kedisiplinan</h3>
+          <div class="big-num" id="info-score">100</div>
+          <div class="big-num-label">Semakin tinggi, semakin baik</div>
+          <div class="bar-track">
+            <div class="bar-fill" id="info-bar" style="width:100%;"></div>
+          </div>
+          <div class="bar-label">
+            <span>Buruk</span>
+            <span id="info-status-label">Baik</span>
+            <span>Sangat Baik</span>
+          </div>
+          <div style="margin-top:14px;">
+            <span class="status-pill good" id="info-pill">Baik</span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>Rincian Status</h3>
+          <div class="bar-label" style="margin-top:0;">
+            <span>✓ Masuk: <b id="info-masuk">0</b></span>
+            <span>✎ Izin: <b id="info-izin">0</b></span>
+            <span>✗ Sakit: <b id="info-sakit">0</b></span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>Absensi Terakhir</h3>
+          <div id="info-history" class="empty" style="padding:12px 0;">
+            Belum ada riwayat.
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB ADMIN -->
+      <div class="tab-panel" id="panel-admin" style="display:none;">
+        <div id="admin-locked" class="admin-locked" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <h3>Akses Terkunci</h3>
+          <p>Tab ini hanya bisa dibuka oleh admin.<br>Login dengan akun admin untuk mengakses.</p>
+        </div>
+
+        <div id="admin-panel" style="display:none;">
+          <div class="badge admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3 6 6 1-4.5 4.5L17 20l-5-3-5 3 1.5-6.5L4 9l6-1z"/></svg>Panel Admin</div>
+          <h1>Dashboard Siswa</h1>
+          <p class="sub">Klik nama siswa untuk lihat detail & kontak WA.</p>
+
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="n" id="adm-total-siswa">0</div>
+              <div class="l">Total Siswa</div>
+            </div>
+            <div class="stat-box">
+              <div class="n good" id="adm-total-absen">0</div>
+              <div class="l">Total Absen</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" id="adm-search" placeholder="Cari nama / email..." style="flex:1;">
+          </div>
+
+          <div id="adm-list"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  <div class="footer">Sistem Presensi · Uji Coba 8A · v3</div>
+</div>
+
+<!-- MODAL DETAIL SISWA (ADMIN) -->
+<div class="modal" id="modal-student">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close">×</button>
+    <h2 id="m-name">—</h2>
+    <div class="modal-sub" id="m-email">—</div>
+
+    <div class="info-card" style="margin-bottom:12px;">
+      <h3>Skor Kedisiplinan</h3>
+      <div class="big-num" id="m-score">100</div>
+      <div class="bar-track">
+        <div class="bar-fill" id="m-bar" style="width:100%;"></div>
+      </div>
+      <div style="margin-top:12px;">
+        <span class="status-pill good" id="m-pill">Baik</span>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="n" id="m-total">0</div>
+        <div class="l">Total Absen</div>
+      </div>
+      <div class="stat-box">
+        <div class="n good" id="m-masuk">0</div>
+        <div class="l">Masuk</div>
+      </div>
+      <div class="stat-box">
+        <div class="n warn" id="m-izin">0</div>
+        <div class="l">Izin</div>
+      </div>
+      <div class="stat-box">
+        <div class="n danger" id="m-sakit">0</div>
+        <div class="l">Sakit</div>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <a id="m-wa" href="#" target="_blank" rel="noopener" class="action-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span id="m-wa-label">Chat WhatsApp</span>
+      </a>
+      <a id="m-mail" href="#" class="action-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span id="m-mail-label">Kirim Email</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUCCESS (COPY & REDIRECT) -->
+<div class="modal" id="modal-success">
+  <div class="modal-box">
+    <div class="success" style="text-align:center;padding:8px 0;">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 12px 40px -10px rgba(37,211,102,.7);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#04140c" stroke-width="3" style="width:30px;height:30px;"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 style="font-size:19px;font-weight:800;margin-bottom:6px;">Pesan Siap Kirim</h2>
+      <p style="color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:16px;">Teks absensi sudah otomatis ter-copy.<br>WhatsApp grup akan terbuka. Tinggal paste & kirim.</p>
+      <button class="btn btn-primary" id="btn-open-wa" style="text-decoration:none;">Buka Grup WhatsApp</button>
+      <button class="btn btn-ghost" style="margin-top:10px;" id="btn-copy-again">Copy Ulang Teks</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   KONFIGURASI
+   ============================================================ */
+const CONFIG = {
+  WA_GROUP_URL: "https://chat.whatsapp.com/LLDGVX0sfv75yCxGhtpA2E?s=cl&p=a&mlu=4&ilr=4",
+  SESSION_KEY: "bazz_absen_session_v1",
+  USERS_KEY: "bazz_absen_users_v1",
+  RECORDS_KEY: "bazz_absen_records_v1",
+  ADMIN_EMAIL: "qage321@gmail.com",
+  ADMIN_PASS: "denis123456789"
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = { pendingUser: null, captcha: null, session: null, lastText: "", activeTab: "absen", adminSelected: null };
+
+/* ============================================================
+   UTIL
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+const show = (id) => { document.querySelectorAll(".step").forEach(s => s.classList.remove("active")); $(id).classList.add("active"); };
+const err = (id, msg) => { const el = $(id); el.textContent = msg; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 5000); };
+const clearMsg = (id) => $(id).classList.remove("show");
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+const getUsers = () => JSON.parse(localStorage.getItem(CONFIG.USERS_KEY) || "{}");
+const setUsers = (u) => localStorage.setItem(CONFIG.USERS_KEY, JSON.stringify(u));
+const getRecords = () => JSON.parse(localStorage.getItem(CONFIG.RECORDS_KEY) || "{}");
+const setRecords = (r) => localStorage.setItem(CONFIG.RECORDS_KEY, JSON.stringify(r));
+const getSession = () => JSON.parse(localStorage.getItem(CONFIG.SESSION_KEY) || "null");
+const setSession = (s) => localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(s));
+const clearSession = () => localStorage.removeItem(CONFIG.SESSION_KEY);
+
+/* ============================================================
+   CRYPTO
+   ============================================================ */
+async function hashPassword(password, salt) {
+  const data = new TextEncoder().encode(salt + "::" + password);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+function makeSalt() {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+/* ============================================================
+   AUTO-SEED ADMIN
+   ============================================================ */
+async function ensureAdminExists() {
+  const users = getUsers();
+  if (!users[CONFIG.ADMIN_EMAIL]) {
+    const salt = makeSalt();
+    const hash = await hashPassword(CONFIG.ADMIN_PASS, salt);
+    users[CONFIG.ADMIN_EMAIL] = {
+      email: CONFIG.ADMIN_EMAIL,
+      wa: "",
+      salt, hash,
+      isAdmin: true,
+      createdAt: Date.now()
+    };
+    setUsers(users);
+    console.log("[ADMIN] Akun admin dibuat:", CONFIG.ADMIN_EMAIL);
+  } else if (!users[CONFIG.ADMIN_EMAIL].isAdmin) {
+    users[CONFIG.ADMIN_EMAIL].isAdmin = true;
+    setUsers(users);
+  }
+}
+
+/* ============================================================
+   VALIDASI
+   ============================================================ */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const isEmailValid = (e) => EMAIL_RE.test(e.trim());
+const WA_RE = /^[0-9+\-\s()]{8,20}$/;
+const isWaValid = (w) => WA_RE.test(w.trim());
+function isPassStrong(p){
+  if (p.length < 5) return { ok:false, msg:"Sandi minimal 5 karakter." };
+  if (!/[A-Za-z]/.test(p)) return { ok:false, msg:"Sandi harus mengandung huruf." };
+  if (!/[0-9]/.test(p)) return { ok:false, msg:"Sandi harus mengandung angka." };
+  return { ok:true };
+}
+function passMeter(p){
+  let s = 0;
+  if (p.length >= 5) s++;
+  if (p.length >= 8) s++;
+  if (/[A-Z]/.test(p)) s++;
+  if (/[0-9]/.test(p)) s++;
+  if (/[^A-Za-z0-9]/.test(p)) s++;
+  return Math.min(s, 5);
+}
+function normalizeWA(wa) {
+  // Bersihkan ke format internasional: 628xxx
+  let w = wa.replace(/[^0-9]/g, "");
+  if (w.startsWith("0")) w = "62" + w.slice(1);
+  if (w.startsWith("8")) w = "62" + w;
+  return w;
+}
+
+/* ============================================================
+   EYE TOGGLE
+   ============================================================ */
+document.querySelectorAll(".eye").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const input = $(btn.dataset.target);
+    const isPwd = input.type === "password";
+    input.type = isPwd ? "text" : "password";
+    btn.innerHTML = isPwd
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  });
+});
+
+/* ============================================================
+   NAVIGASI
+   ============================================================ */
+$("go-register").addEventListener("click", () => { clearMsg("err-login"); show("step-register"); });
+$("go-login").addEventListener("click", () => { clearMsg("err-register"); show("step-login"); });
+$("btn-back-reg2").addEventListener("click", () => { clearMsg("err-captcha"); show("step-register"); });
+
+/* ============================================================
+   REGISTER
+   ============================================================ */
+$("reg-pass").addEventListener("input", (e) => {
+  const m = $("pass-meter");
+  const score = passMeter(e.target.value);
+  m.style.width = (score / 5) * 100 + "%";
+  m.style.background = score <= 2 ? "var(--danger)" : score === 3 ? "var(--warn)" : "var(--accent)";
+});
+
+$("form-register").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  clearMsg("err-register");
+  const email = $("reg-email").value.trim().toLowerCase();
+  const wa = $("reg-wa").value.trim();
+  const pass = $("reg-pass").value;
+  const pass2 = $("reg-pass2").value;
+
+  if (!isEmailValid(email)) return err("err-register", "Format email tidak valid.");
+  if (!isWaValid(wa)) return err("err-register", "Nomor WA tidak valid (8-20 digit).");
+  const strong = isPassStrong(pass);
+  if (!strong.ok) return err("err-register", strong.msg);
+  if (pass !== pass2) return err("err-register", "Konfirmasi sandi tidak sama.");
+
+  const users = getUsers();
+  if (users[email]) return err("err-register", "Email sudah terdaftar. Silakan login.");
+
+  const salt = makeSalt();
+  const hash = await hashPassword(pass, salt);
+  state.pendingUser = { email, wa: normalizeWA(wa), salt, hash, createdAt: Date.now() };
+
+  $("cap-avatar").textContent = email[0].toUpperCase();
+  $("cap-name").textContent = email.split("@")[0];
+  $("cap-mail").textContent = email;
+
+  generateCaptcha();
+  show("step-captcha");
+});
+
+/* ============================================================
+   CAPTCHA
+   ============================================================ */
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 20) + 1;
+  const b = Math.floor(Math.random() * 20) + 1;
+  const ops = ["+", "-", "×"];
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let answer;
+  if (op === "+") answer = a + b;
+  else if (op === "-") answer = a - b;
+  else answer = a * b;
+
+  state.captcha = { answer: String(answer) };
+  $("captcha-q").textContent = `${a} ${op} ${b} = ?`;
+  $("captcha-answer").value = "";
+  $("captcha-check").classList.remove("checked");
+}
+
+$("captcha-refresh").addEventListener("click", generateCaptcha);
+$("captcha-check").addEventListener("click", () => $("captcha-check").classList.toggle("checked"));
+
+$("btn-captcha").addEventListener("click", () => {
+  clearMsg("err-captcha");
+  const ans = $("captcha-answer").value.trim();
+  const checked = $("captcha-check").classList.contains("checked");
+
+  if (!state.pendingUser) return err("err-captcha", "Sesi hilang. Ulangi daftar.");
+  if (!checked) return err("err-captcha", "Centang 'Saya bukan robot' dulu.");
+  if (ans !== state.captcha.answer) {
+    generateCaptcha();
+    return err("err-captcha", "Jawaban salah. Soal baru dimuat.");
+  }
+
+  const users = getUsers();
+  users[state.pendingUser.email] = {
+    email: state.pendingUser.email,
+    wa: state.pendingUser.wa,
+    salt: state.pendingUser.salt,
+    hash: state.pendingUser.hash,
+    isAdmin: false,
+    createdAt: state.pendingUser.createdAt
+  };
+  setUsers(users);
+
+  state.session = { email: state.pendingUser.email, loggedInAt: Date.now() };
+  setSession(state.session);
+
+  state.pendingUser = null;
+  state.captcha = null;
+  $("form-register").reset();
+  $("pass-meter").style.width = "0%";
+
+  enterApp();
+});
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+$("form-login").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  clearMsg("err-login");
+  const email = $("login-email").value.trim().toLowerCase();
+  const pass = $("login-pass").value;
+
+  if (!isEmailValid(email)) return err("err-login", "Format email tidak valid.");
+  if (!pass) return err("err-login", "Sandi wajib diisi.");
+
+  const users = getUsers();
+  const user = users[email];
+  if (!user) return err("err-login", "Akun tidak ditemukan. Silakan daftar.");
+
+  const hash = await hashPassword(pass, user.salt);
+  if (hash !== user.hash) return err("err-login", "Sandi salah.");
+
+  state.session = { email, loggedInAt: Date.now() };
+  setSession(state.session);
+  enterApp();
+});
+
+/* ============================================================
+   ENTER APP
+   ============================================================ */
+function enterApp() {
+  if (!state.session) return show("step-login");
+  const users = getUsers();
+  const user = users[state.session.email];
+  if (!user) { clearSession(); state.session = null; return show("step-login"); }
+
+  $("u-avatar").textContent = user.email[0].toUpperCase();
+  $("u-name").textContent = user.email.split("@")[0];
+  $("u-mail").textContent = user.email;
+
+  $("f-nama").value = user.email.split("@")[0];
+  $("f-tanggal").value = new Date().toISOString().split("T")[0];
+
+  // Reset tab
+  switchTab("absen");
+
+  show("step-app");
+}
+
+$("btn-logout").addEventListener("click", () => {
+  clearSession();
+  state.session = null;
+  $("form-login").reset();
+  $("form-register").reset();
+  show("step-login");
+});
+
+/* ============================================================
+   TAB SWITCH
+   ============================================================ */
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+});
+
+function switchTab(name) {
+  state.activeTab = name;
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  document.querySelectorAll(".tab-panel").forEach(p => p.style.display = "none");
+  $(`panel-${name}`).style.display = "block";
+
+  if (name === "info") renderInfoTab();
+  if (name === "admin") renderAdminTab();
+}
+
+/* ============================================================
+   RECORD ABSEN (untuk statistik)
+   ============================================================ */
+function saveAbsenRecord(email, data) {
+  const records = getRecords();
+  if (!records[email]) records[email] = [];
+  records[email].push({ ...data, timestamp: Date.now() });
+  setRecords(records);
+}
+
+function getUserRecords(email) {
+  const records = getRecords();
+  return records[email] || [];
+}
+
+/* ============================================================
+   INFO TAB
+   ============================================================ */
+function renderInfoTab() {
+  const email = state.session.email;
+  const records = getUserRecords(email);
+  const now = new Date();
+  const bulanIni = records.filter(r => {
+    const d = new Date(r.timestamp);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+
+  const total = records.length;
+  const masuk = records.filter(r => r.status === "Masuk").length;
+  const izin = records.filter(r => r.status === "Izin").length;
+  const sakit = records.filter(r => r.status === "Sakit").length;
+
+  $("info-total").textContent = total;
+  $("info-bulan").textContent = bulanIni.length;
+  $("info-masuk").textContent = masuk;
+  $("info-izin").textContent = izin;
+  $("info-sakit").textContent = sakit;
+
+  // Skor: makin banyak "Masuk" makin tinggi
+  // Base 100, minus 5 per izin, minus 10 per sakit
+  let score = 100 - (izin * 5) - (sakit * 10);
+  if (score < 0) score = 0;
+  $("info-score").textContent = score;
+
+  const bar = $("info-bar");
+  bar.style.width = score + "%";
+  bar.classList.remove("warn", "danger");
+  const bigNum = $("info-score");
+  bigNum.classList.remove("warn", "danger");
+  const pill = $("info-pill");
+  pill.className = "status-pill";
+
+  if (score >= 80) {
+    pill.classList.add("good");
+    pill.textContent = "Baik";
+  } else if (score >= 50) {
+    bar.classList.add("warn");
+    bigNum.classList.add("warn");
+    pill.classList.add("warn");
+    pill.textContent = "Perlu Perhatian";
+  } else {
+    bar.classList.add("danger");
+    bigNum.classList.add("danger");
+    pill.classList.add("danger");
+    pill.textContent = "Bermasalah";
+  }
+
+  // History
+  const historyEl = $("info-history");
+  if (records.length === 0) {
+    historyEl.className = "empty";
+    historyEl.style.padding = "12px 0";
+    historyEl.textContent = "Belum ada riwayat.";
+  } else {
+    historyEl.className = "";
+    historyEl.style.padding = "0";
+    historyEl.innerHTML = records.slice(-5).reverse().map(r => {
+      const tgl = r.tglText || "-";
+      const pillClass = r.status === "Masuk" ? "good" : (r.status === "Izin" ? "warn" : "danger");
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--stroke-2);">
+        <div>
+          <div style="font-size:12.5px;font-weight:600;">${tgl}</div>
+          <div style="font-size:11px;color:var(--muted);">No. ${r.noAbsen || "-"} · ${r.keterangan || "-"}</div>
+        </div>
+        <span class="status-pill ${pillClass}">${r.status}</span>
+      </div>`;
+    }).join("");
+  }
+}
+
+/* ============================================================
+   ADMIN TAB
+   ============================================================ */
+function isAdmin(email) {
+  return email === CONFIG.ADMIN_EMAIL;
+}
+
+function renderAdminTab() {
+  const email = state.session.email;
+  const locked = $("admin-locked");
+  const panel = $("admin-panel");
+
+  if (!isAdmin(email)) {
+    locked.style.display = "block";
+    panel.style.display = "none";
+    return;
+  }
+
+  locked.style.display = "none";
+  panel.style.display = "block";
+
+  const users = getUsers();
+  const records = getRecords();
+
+  // Filter out admin itself
+  const students = Object.values(users).filter(u => !u.isAdmin);
+
+  let totalAbsen = 0;
+  students.forEach(s => { totalAbsen += (records[s.email] || []).length; });
+
+  $("adm-total-siswa").textContent = students.length;
+  $("adm-total-absen").textContent = totalAbsen;
+
+  renderAdminList(students, records);
+}
+
+function renderAdminList(students, records) {
+  const q = ($("adm-search").value || "").trim().toLowerCase();
+  const filtered = students.filter(s =>
+    !q || s.email.toLowerCase().includes(q)
+  );
+
+  const listEl = $("adm-list");
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <div>${q ? "Tidak ada siswa yang cocok." : "Belum ada siswa terdaftar."}</div>
+    </div>`;
+    return;
+  }
+
+  // Sort: yang paling sering absen (count tertinggi) di atas
+  filtered.sort((a, b) => {
+    const ca = (records[a.email] || []).length;
+    const cb = (records[b.email] || []).length;
+    return cb - ca;
+  });
+
+  listEl.innerHTML = filtered.map(s => {
+    const recs = records[s.email] || [];
+    const count = recs.length;
+    const countClass = count === 0 ? "" : (count < 3 ? "" : (count < 6 ? "warn" : "danger"));
+    return `<div class="student-item" data-email="${s.email}">
+      <div class="avatar">${s.email[0].toUpperCase()}</div>
+      <div class="info">
+        <div class="name">${s.email.split("@")[0]}</div>
+        <div class="sub">${s.wa ? "+" + s.wa : "WA belum diisi"} · ${s.email}</div>
+      </div>
+      <div class="count ${countClass}">${count}</div>
+    </div>`;
+  }).join("");
+
+  // Attach click
+  listEl.querySelectorAll(".student-item").forEach(el => {
+    el.addEventListener("click", () => openStudentModal(el.dataset.email));
+  });
+}
+
+$("adm-search").addEventListener("input", () => {
+  const users = getUsers();
+  const records = getRecords();
+  const students = Object.values(users).filter(u => !u.isAdmin);
+  renderAdminList(students, records);
+});
+
+/* ============================================================
+   STUDENT DETAIL MODAL
+   ============================================================ */
+function openStudentModal(email) {
+  const users = getUsers();
+  const s = users[email];
+  if (!s) return;
+
+  const records = getUserRecords(email);
+  const total = records.length;
+  const masuk = records.filter(r => r.status === "Masuk").length;
+  const izin = records.filter(r => r.status === "Izin").length;
+  const sakit = records.filter(r => r.status === "Sakit").length;
+
+  let score = 100 - (izin * 5) - (sakit * 10);
+  if (score < 0) score = 0;
+
+  $("m-name").textContent = s.email.split("@")[0];
+  $("m-email").textContent = s.email;
+  $("m-score").textContent = score;
+  $("m-bar").style.width = score + "%";
+  $("m-total").textContent = total;
+  $("m-masuk").textContent = masuk;
+  $("m-izin").textContent = izin;
+  $("m-sakit").textContent = sakit;
+
+  const pill = $("m-pill");
+  const bar = $("m-bar");
+  const bigNum = $("m-score");
+  pill.className = "status-pill";
+  bar.classList.remove("warn", "danger");
+  bigNum.classList.remove("warn", "danger");
+
+  if (score >= 80) {
+    pill.classList.add("good");
+    pill.textContent = "Baik";
+  } else if (score >= 50) {
+    bar.classList.add("warn");
+    bigNum.classList.add("warn");
+    pill.classList.add("warn");
+    pill.textContent = "Perlu Perhatian";
+  } else {
+    bar.classList.add("danger");
+    bigNum.classList.add("danger");
+    pill.classList.add("danger");
+    pill.textContent = "Bermasalah";
+  }
+
+  // WA link
+  const waLink = $("m-wa");
+  const waLabel = $("m-wa-label");
+  if (s.wa) {
+    const waNum = normalizeWA(s.wa);
+    waLink.href = `https://wa.me/${waNum}`;
+    waLink.style.display = "flex";
+    waLabel.textContent = "Chat WhatsApp · +" + waNum;
+  } else {
+    waLink.style.display = "none";
+  }
+
+  // Mail link
+  $("m-mail").href = `mailto:${s.email}`;
+  $("m-mail-label").textContent = "Kirim Email · " + s.email;
+
+  $("modal-student").classList.add("show");
+}
+
+$("modal-close").addEventListener("click", () => $("modal-student").classList.remove("show"));
+$("modal-student").addEventListener("click", (e) => {
+  if (e.target.id === "modal-student") $("modal-student").classList.remove("show");
+});
+
+/* ============================================================
+   FORM ABSEN
+   ============================================================ */
+$("f-status").addEventListener("change", (e) => {
+  const v = e.target.value;
+  const showKet = v === "Izin" || v === "Sakit";
+  $("field-ket").style.display = showKet ? "block" : "none";
+  $("f-ket").required = showKet;
+});
+
+function formatTanggal(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr + "T00:00:00");
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
+  const bulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.getMonth()];
+  return `${hari}, ${d.getDate()} ${bulan} ${d.getFullYear()}`;
+}
+
+/* ============================================================
+   COPY CLIPBOARD
+   ============================================================ */
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) { console.warn("[COPY] Modern API gagal:", e); }
+
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.opacity = "0";
+    ta.style.pointerEvents = "none";
+    ta.setAttribute("readonly", "");
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    console.warn("[COPY] execCommand gagal:", e);
+    return false;
+  }
+}
+
+/* ============================================================
+   SUBMIT ABSEN
+   ============================================================ */
+$("absen-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  clearMsg("err-form");
+
+  if (!state.session) return err("err-form", "Sesi hilang. Login ulang.");
+
+  const tanggal = $("f-tanggal").value;
+  const noAbsen = $("f-no").value.trim();
+  const nama = $("f-nama").value.trim();
+  const status = $("f-status").value;
+  const ket = $("f-ket").value.trim();
+
+  if (!tanggal || !noAbsen || !nama || !status) return err("err-form", "Semua field wajib diisi.");
+  if ((status === "Izin" || status === "Sakit") && !ket) return err("err-form", "Keterangan wajib untuk Izin/Sakit.");
+
+  const tglFormatted = formatTanggal(tanggal);
+  const keterangan = ket || (status === "Masuk" ? "Hadir" : "-");
+
+  const teks =
+`⚠️ LAPORAN ABSENSI 8A ⚠️
+
+📅 HARI/TANGGAL : ${tglFormatted}
+🔢 NO. ABSEN    : ${noAbsen}
+👤 NAMA         : ${nama}
+
+📌 STATUS       : ${status}
+💬 KETERANGAN   : ${keterangan}
+
+Mohon izin kepada Bapak/Ibu Guru dan teman-teman semua. Terima kasih. 🙏✨`;
+
+  state.lastText = teks;
+
+  // Simpan record untuk statistik
+  saveAbsenRecord(state.session.email, {
+    tgl: tanggal,
+    tglText: tglFormatted,
+    noAbsen,
+    nama,
+    status,
+    keterangan
+  });
+
+  // Auto copy
+  const copied = await copyToClipboard(teks);
+  console.log("[COPY]", copied ? "✓" : "✗");
+
+  // Update UI success
+  const openBtn = $("btn-open-wa");
+  openBtn.onclick = () => window.open(CONFIG.WA_GROUP_URL, "_blank");
+
+  $("modal-success").classList.add("show");
+
+  // Auto open WA grup
+  setTimeout(() => window.open(CONFIG.WA_GROUP_URL, "_blank"), 800);
+
+  // Reset form
+  $("absen-form").reset();
+  $("f-tanggal").value = new Date().toISOString().split("T")[0];
+  $("f-status").dispatchEvent(new Event("change"));
+});
+
+$("btn-copy-again").addEventListener("click", async () => {
+  if (!state.lastText) return;
+  const ok = await copyToClipboard(state.lastText);
+  const btn = $("btn-copy-again");
+  const original = btn.textContent;
+  btn.textContent = ok ? "✓ Tersalin!" : "✗ Gagal, coba long-press";
+  setTimeout(() => btn.textContent = original, 2000);
+});
+
+$("modal-success").addEventListener("click", (e) => {
+  if (e.target.id === "modal-success") $("modal-success").classList.remove("show");
+});
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+(async function boot(){
+  await ensureAdminExists();
+
+  const sess = getSession();
+  if (sess && sess.email) {
+    const users = getUsers();
+    if (users[sess.email]) {
+      state.session = sess;
+      return enterApp();
+    }
+  }
+  show("step-login");
+})();
+</script>
+</body>
+</html>
